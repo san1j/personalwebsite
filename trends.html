@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v4.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+ 
+<!-- Create a div where the graph will take place -->
+ <h1 style="margin-top: 0">D3.js- Interactive data-viz for word usage frequency: 1800-2024</h1>
+ <h4 style="margin-top: 0">Type a word in the input box below</h4>
+
+
+<input type="text" id="word" value="word" > <input type="button" value="Submit" onclick="getword()" class="btn btn-success"><br><br>
+<h4><div class="circle" style="background-color:green"> </div> 1800-1899</h4>
+<h4><div class="circle" style="background-color:orange"> </div> 1900-1999</h4>
+<h4><div class="circle" style="background-color:red"> </div> 2000s</h4>
+ <div id="my_dataviz" style="padding-top: 20px"></div>
+
+
+
+
+<script>
+//d3.select("#word").on("input", changeSize )
+// set the dimensions and margins of the graph
+var margin = {top: 10, right: 100, bottom: 100, left: 100},
+    width = window.innerWidth - margin.left - margin.right,
+    height = window.innerHeight - margin.top - margin.bottom;
+
+// append the svg object to the body of the page
+var svg = d3.select("#my_dataviz")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+    
+    
+    
+function getword(){
+    var word = document.getElementById("word").value;
+    d3.json("https://api.wordnik.com/v4/word.json/"+ word + "/frequency?useCanonical=false&startYear=1800&endYear=2012&api_key=48dd829661f515d5abc0d03197a00582e888cc7da2484d5c7", function(data) {
+        drawchart(data.frequency)
+    });
+}
+
+
+
+//Read the data
+function drawchart(data) {
+ d3.select("svg").remove(); 
+    
+    var svg = d3.select("#my_dataviz")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+    
+  // Add X axis
+  var x = d3.scaleLinear()
+    .domain([1800, 2024])
+    .range([ 0, width ]);
+  svg.append("g")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(x));
+
+  // Add Y axis
+  var y = d3.scaleLinear()
+    .domain([0, 1000])
+    .range([ height, 0]);
+  svg.append("g")
+    .call(d3.axisLeft(y));
+
+  // Add a scale for bubble size
+  var z = d3.scaleLinear()
+    .domain([0, 1000])
+    .range([ 1, 40]);
+
+  // Add dots
+  svg.append('g')
+    .selectAll("dot")
+    .data(data)
+    .enter()
+    .append("circle")
+      .attr("cx", function (d) { return x(d.year); } )
+      .attr("cy", function (d) { return y(d.count); } )
+      .attr("r", function (d) { return z(d.count); } )
+      .style("fill", function(d){
+              if (d.year>= 1800 && d.year <=1899){
+                return "green"
+              } else if (d.year>= 1900 && d.year <=1999){
+                return "orange"
+              } else {
+                return "red"
+              }
+            })
+      .style("opacity", "0.7")
+      .attr("stroke", "black")
+    
+
+  
+}
+
+</script>
+
+
+<style>
+.circle {
+  display: inline-block;
+  height: 25px;
+  width: 25px;
+  background-color: #555;
+  border-radius: 50%;
+}
+</style>
+ 
+ 
+ 
+
